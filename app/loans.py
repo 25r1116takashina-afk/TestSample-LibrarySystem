@@ -13,7 +13,7 @@ bp = Blueprint('loans', __name__, url_prefix='/loans')
 @login_required
 def index():
     db = get_db()
-    # Get current user's loans with book details
+    # ログインユーザーの貸出履歴（書籍タイトル含む）を取得
     loans = db.execute(
         'SELECT l.id, b.title, l.loan_date, l.return_deadline, l.return_date'
         ' FROM loan l JOIN book b ON l.book_id = b.id'
@@ -28,19 +28,19 @@ def index():
 def borrow(book_id):
     db = get_db()
     
-    # 1. Check stock
+    # 1. 在庫と書籍の存在確認
     book = db.execute(
         'SELECT * FROM book WHERE id = ? AND is_deleted = 0', (book_id,)
     ).fetchone()
     
     if book is None:
-        abort(404, f"Book id {book_id} doesn't exist.")
+        abort(404, f"書籍ID {book_id} は存在しません。")
     
     if book['stock_count'] < 1:
         flash(f"'{book['title']}' は現在在庫切れです。")
         return redirect(url_for('books.index'))
 
-    # 2. Check loan limit (Limit: 5 active loans)
+    # 2. 貸出冊数制限のチェック (上限: 5冊)
     active_loans_count = db.execute(
         'SELECT COUNT(*) FROM loan WHERE user_id = ? AND return_date IS NULL',
         (g.user['id'],)
@@ -55,10 +55,11 @@ def borrow(book_id):
     today = date.today()
     # today = date(2026, 2, 1) # 日曜日。14日後は 2/15(日)。
     
-    # Calculate deadline (e.g., 2 weeks later)
+    # 返却期限の計算 (14日後)
     deadline = today + timedelta(days=14)
-    if deadline.weekday() >= 5: # 5=Saturday, 6=Sunday
-        days_to_add = 7 - deadline.weekday() # If Sat(5) -> +2=Mon(0). If Sun(6) -> +1=Mon(0).
+    # 土日の場合は翌月曜日に延長
+    if deadline.weekday() >= 5: # 5=土曜日, 6=日曜日
+        days_to_add = 7 - deadline.weekday() # 土(5)なら+2、日(6)なら+1
         deadline += timedelta(days=days_to_add)
 
     db.execute(
@@ -93,11 +94,12 @@ def return_book(loan_id):
         flash("既に返却済みです。")
         return redirect(url_for('loans.index'))
 
-    # Process Return
+    # 返却処理
     db.execute(
         'UPDATE loan SET return_date = CURRENT_TIMESTAMP WHERE id = ?',
         (loan_id,)
     )
+    # 在庫を1増やす
     db.execute(
         'UPDATE book SET stock_count = stock_count + 1 WHERE id = ?',
         (loan['book_id'],)

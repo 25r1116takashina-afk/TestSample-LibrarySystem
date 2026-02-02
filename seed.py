@@ -7,11 +7,11 @@ app = create_app()
 with app.app_context():
     db = get_db()
     
-    # 1. Clear users
+    # 1. ユーザーデータのクリア
     db.execute('DELETE FROM user')
     db.execute('DELETE FROM sqlite_sequence WHERE name="user"')
 
-    # 2. Add Users
+    # 2. 初期ユーザーの追加 (管理者と一般ユーザー)
     users = [
         ('admin', 'adminpass', 'admin'),
         ('user01', 'password', 'user'),
@@ -24,16 +24,16 @@ with app.app_context():
             (username, generate_password_hash(password), role)
         )
         
-    # 3. Clear books
+    # 3. 書籍データのクリア
     db.execute('DELETE FROM book')
     db.execute('DELETE FROM sqlite_sequence WHERE name="book"')
     
-    # 4. Add Books
+    # 4. 初期書籍の追加
     books = [
         ('Python入門', '978-4-0000-0001-1', 'Guido', 'OReilly', 5),
         ('Flask Web開発', '978-4-0000-0002-8', 'Miguel', 'OReilly', 3),
         ('SQLアンチパターン', '978-4-0000-0003-5', 'Bill', 'OReilly', 2),
-        ('リーダブルコード', '978-4-0000-0004-2', 'Boswell', 'OReilly', 0), # No stock
+        ('リーダブルコード', '978-4-0000-0004-2', 'Boswell', 'OReilly', 0), # 在庫0のテスト用
         ('人月の神話', '978-4-0000-0005-9', 'Brooks', 'Pearson', 1),
         ('達人プログラマー', '978-4-0000-0006-6', 'Andrew', 'Ohmsha', 2),
         ('Clean Code', '978-4-0000-0007-3', 'Martin', 'Pearson', 2),
@@ -46,9 +46,9 @@ with app.app_context():
             (title, isbn, author, publisher, stock)
         )
         
-    # 5. Clear loans
+    # 5. 貸出履歴のクリア
     db.execute('DELETE FROM loan')
     db.execute('DELETE FROM sqlite_sequence WHERE name="loan"')
 
     db.commit()
-    print("Seeded database with initial data.")
+    print("初期データの投入が完了しました。")

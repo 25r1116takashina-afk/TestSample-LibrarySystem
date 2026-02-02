@@ -17,7 +17,7 @@ def index():
     params = []
 
     if query:
-        # sql += ' AND (title LIKE ? OR isbn LIKE ? OR author LIKE ?)'
+        # タイトル、ISBN、著者名で部分一致検索
         sql += ' AND (title LIKE ? OR isbn LIKE ? OR author LIKE ?)'
         search_term = f'%{query}%'
         params = [search_term, search_term, search_term]
@@ -58,6 +58,7 @@ def create():
     return render_template('books/create.html')
 
 def get_book(id):
+    """IDに一致する書籍を取得します（削除されていないもののみ）。"""
     book = get_db().execute(
         'SELECT * FROM book WHERE id = ? AND is_deleted = 0',
         (id,)
@@ -83,7 +84,7 @@ def update(id):
         error = None
 
         if not title:
-            error = 'Title is required.'
+            error = 'タイトルは必須です。'
 
         if error is not None:
             flash(error)
@@ -104,7 +105,7 @@ def update(id):
 @admin_required
 def delete(id):
     db = get_db()
-    # Check for active loans before deleting
+    # 削除前に貸出中の件数を確認
     active_loan = db.execute(
         'SELECT id FROM loan WHERE book_id = ? AND return_date IS NULL',
         (id,)
@@ -114,10 +115,10 @@ def delete(id):
         flash("削除できません: 貸出中のため削除できません。")
         return redirect(url_for('books.index'))
 
-    # Logical Deletion
+    # 論理削除（is_deletedフラグを立てる）
     db.execute('UPDATE book SET is_deleted = 1 WHERE id = ?', (id,))
     
-    # NOTE: Loan history remains intact.
+    # 注意: 貸出履歴データは保持されます。
     
     db.commit()
     return redirect(url_for('books.index'))
