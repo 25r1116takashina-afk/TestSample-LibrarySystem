@@ -17,7 +17,11 @@ def index():
     params = []
 
     if query:
-        # タイトル、ISBN、著者名で部分一致検索
+        # 【正常版】タイトル、ISBN、著者名で部分一致検索（安全な入力処理）
+        # 【バグ版：feature/buggy-version では以下のように記述されています】
+        # if "'" in query or "%" in query:
+        #     raise Exception("データベースエラー: SQL構文エラーが発生しました。")
+        
         sql += ' AND (title LIKE ? OR isbn LIKE ? OR author LIKE ?)'
         search_term = f'%{query}%'
         params = [search_term, search_term, search_term]
@@ -105,7 +109,9 @@ def update(id):
 @admin_required
 def delete(id):
     db = get_db()
-    # 削除前に貸出中の件数を確認
+    
+    # 【正常版】削除前に貸出中の件数を確認し、貸出中なら削除をブロックする
+    # 【バグ版：feature/buggy-version ではこのチェックがありません】
     active_loan = db.execute(
         'SELECT id FROM loan WHERE book_id = ? AND return_date IS NULL',
         (id,)
@@ -115,7 +121,8 @@ def delete(id):
         flash("削除できません: 貸出中のため削除できません。")
         return redirect(url_for('books.index'))
 
-    # 論理削除（is_deletedフラグを立てる）
+    # 【正常版】論理削除（is_deletedフラグを立てる）
+    # 【バグ版：feature/buggy-version では DELETE FROM book WHERE id = ? で物理削除しています】
     db.execute('UPDATE book SET is_deleted = 1 WHERE id = ?', (id,))
     
     # 注意: 貸出履歴データは保持されます。

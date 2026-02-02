@@ -40,12 +40,8 @@ def borrow(book_id):
         flash(f"'{book['title']}' は現在在庫切れです。")
         return redirect(url_for('books.index'))
 
-    # 2. 貸出冊数制限のチェック (上限: 5冊)
-    active_loans_count = db.execute(
-        'SELECT COUNT(*) FROM loan WHERE user_id = ? AND return_date IS NULL',
-        (g.user['id'],)
-    ).fetchone()[0]
-
+    # 【正常版】5冊以上（5含む）の貸出を制限する
+    # 【バグ版：feature/buggy-version では判定が active_loans_count > 5 となっており、6冊借りられます】
     if active_loans_count >= 5:
         flash("5冊以上同時に借りることはできません。")
         return redirect(url_for('books.index'))
@@ -55,9 +51,9 @@ def borrow(book_id):
     today = date.today()
     # today = date(2026, 2, 1) # 日曜日。14日後は 2/15(日)。
     
-    # 返却期限の計算 (14日後)
+    # 【正常版】返却期限の計算 (14日後)。土日の場合は翌月曜日に延長する。
+    # 【バグ版：feature/buggy-version では土日判定がなく、週末が返却期限になります】
     deadline = today + timedelta(days=14)
-    # 土日の場合は翌月曜日に延長
     if deadline.weekday() >= 5: # 5=土曜日, 6=日曜日
         days_to_add = 7 - deadline.weekday() # 土(5)なら+2、日(6)なら+1
         deadline += timedelta(days=days_to_add)
@@ -93,6 +89,13 @@ def return_book(loan_id):
     if loan['return_date'] is not None:
         flash("既に返却済みです。")
         return redirect(url_for('loans.index'))
+
+    # 【正常版】そのまま返却可能（在庫0でも返却で在庫1になるだけなので問題なし）
+    # 【バグ版：feature/buggy-version では、なぜかここで在庫0チェックを行っており返却をブロックします】
+    # book = db.execute('SELECT stock_count FROM book WHERE id = ?', (loan['book_id'],)).fetchone()
+    # if book and book['stock_count'] == 0:
+    #     flash("システムエラー: 在庫数が異常(0)のため、返却処理を続行できません。")
+    #     return redirect(url_for('loans.index'))
 
     # 返却処理
     db.execute(
