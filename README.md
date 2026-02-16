@@ -29,11 +29,14 @@ cd TestSample-LibrarySystem
 ### 2. 仮想環境の作成と有効化 (推奨)
 
 Windows (PowerShell):
+
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
+
 Mac/Linux:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -48,6 +51,7 @@ pip install -r requirements.txt
 ### 4. データベースの初期化
 
 初回起動前、またはリセット時に実行してください。
+
 ```bash
 python database.py init
 ```
@@ -57,6 +61,7 @@ python database.py init
 ```bash
 python app.py
 ```
+
 ブラウザで [http://127.0.0.1:5000](http://127.0.0.1:5000) にアクセスしてください。
 
 ### 6. flask
@@ -65,17 +70,16 @@ python app.py
 python -m flask run
 ```
 
-
 ## ドキュメント
 
 プロジェクト関連ドキュメントは `doc/` フォルダに格納されています。
 
-* 　**[基本仕様書](doc/基本仕様書.md)**: 演習の正解基準となる資料
-*   **[データベース設計書](doc/データベース設計書.md)**: テーブル定義とER図
-*   **[テストケース雛形](doc/テストケース雛形.md)**: テスト観点とケースの作成サンプル
-*   **[テストデータガイド](doc/テストデータガイド.md)**: 使用可能なアカウントと初期データ
-*   **[GitHub Issue 利用ガイド](doc/github_Issueガイド.md)**: バグ報告の方法
-*   **[演習成果物について](doc/演習成果物について.md)**: 受講生が作成すべき資料の定義
+**[基本仕様書](doc/基本仕様書.md)**: 演習の正解基準となる資料
+**[データベース設計書](doc/データベース設計書.md)**: テーブル定義とER図
+**[テストケース雛形](doc/テストケース雛形.md)**: テスト観点とケースの作成サンプル
+**[テストデータガイド](doc/テストデータガイド.md)**: 使用可能なアカウントと初期データ
+**[GitHub Issue 利用ガイド](doc/github_Issueガイド.md)**: バグ報告の方法
+**[演習成果物について](doc/演習成果物について.md)**: 受講生が作成すべき資料の定義
 
 ## ライセンス
 
